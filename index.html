@@ -28,6 +28,7 @@
 :root {
   --paper: #f6f3ee; --surface: #ffffff; --ink: #2a211c; --muted: #6a5f57; --line: #ddd5ca;
   --inf: #c2571a; --chr: #2d6f80; --inj: #7a5aa6; --oth: #7d7468;
+  --s1: #2a6fb0; --s2: #c2571a; --s3: #2f8f6b; --s4: #8a5fb5;
   --focus: #c2571a;
   --display: "Zilla Slab", Rockwell, Georgia, serif;
   --body: Aptos, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
@@ -37,11 +38,13 @@
   :root:not([data-theme="light"]) {
     --paper: #181411; --surface: #221d19; --ink: #f1ebe4; --muted: #b3a89d; --line: #3d352e;
     --inf: #f0935a; --chr: #7cc0d0; --inj: #b9a0e0; --oth: #a69c90; --focus: #f0935a; color-scheme: dark;
+    --s1: #4f95d6; --s2: #d6703a; --s3: #3faa80; --s4: #a182d2;
   }
 }
 :root[data-theme="dark"] {
   --paper: #181411; --surface: #221d19; --ink: #f1ebe4; --muted: #b3a89d; --line: #3d352e;
   --inf: #f0935a; --chr: #7cc0d0; --inj: #b9a0e0; --oth: #a69c90; --focus: #f0935a; color-scheme: dark;
+    --s1: #4f95d6; --s2: #d6703a; --s3: #3faa80; --s4: #a182d2;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
@@ -86,6 +89,35 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .prose li { margin-bottom: .4rem; }
 .notes { font-size: .88rem; color: var(--muted); }
 footer { font-size: .85rem; color: var(--muted); }
+.views, .chips { display: flex; flex-wrap: wrap; gap: .5rem; }
+.views button, .chips button { font: inherit; font-weight: 600; font-size: .95rem; padding: .45rem .8rem; border-radius: 10px; border: 1px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; }
+.views button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.chips button { display: inline-flex; align-items: center; gap: .45rem; font-weight: 400; border-color: var(--line); }
+.chips button[aria-pressed="true"] { border-color: var(--ink); font-weight: 600; }
+.chips button[aria-pressed="false"] { color: var(--muted); }
+.chips button[aria-pressed="false"] svg { opacity: .35; }
+.sub { margin: 0; color: var(--muted); font-size: .95rem; }
+.chart svg { width: 100%; height: auto; display: block; overflow: visible; touch-action: pan-y; }
+.chart text { fill: var(--muted); font-family: var(--body); font-size: 16px; font-variant-numeric: tabular-nums; }
+.chart text.end { fill: var(--ink); font-size: 15px; }
+.readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: .6rem; }
+.readout > div { border: 1px solid var(--line); border-radius: 10px; padding: .55rem .75rem; }
+.readout .num { font-family: var(--display); font-weight: 700; font-size: 1.5rem; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.readout .cap { font-size: .8rem; color: var(--muted); display: flex; align-items: center; gap: .35rem; }
+.readout .chg { font-size: .8rem; color: var(--muted); }
+.yearpick { display: flex; align-items: center; gap: .8rem; font-size: .9rem; color: var(--muted); }
+.yearpick input { flex: 1; accent-color: var(--ink); min-width: 0; }
+.notice { margin: 0; border-left: 4px solid var(--line); padding: .1rem 0 .1rem .9rem; max-width: 64ch; }
+.caveat { margin: 0; font-size: .9rem; color: var(--muted); max-width: 70ch; }
+.event { margin: 0; font-size: .95rem; }
+details { font-size: .9rem; }
+summary { cursor: pointer; color: var(--muted); }
+summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.tablewrap { overflow-x: auto; }
+.tablewrap table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; margin-top: .5rem; }
+.tablewrap th, .tablewrap td { text-align: right; padding: .3rem .5rem; border-bottom: 1px solid var(--line); }
+.tablewrap th:first-child, .tablewrap td:first-child { text-align: left; }
+.card { min-width: 0; }
 .hidden { display: none !important; }
 @media (max-width: 620px) { .cols { grid-template-columns: 1fr; } .card { padding: 1.1rem; } }
 </style>
@@ -135,12 +167,33 @@ footer { font-size: .85rem; color: var(--muted); }
     <div class="stats" id="stats"></div>
   </section>
 
+  <section class="card after hidden" id="trends" aria-labelledby="trendHead">
+    <h2 id="trendHead">Follow a cause over time</h2>
+    <p class="lede">The lists compare two years. These charts show every year in between. Choose a group of causes, turn lines on or off, and move across the chart or use the slider to read any year.</p>
+    <div class="views" id="views" role="group" aria-label="Choose a group of causes"></div>
+    <div>
+      <h3 id="vTitle"></h3>
+      <p class="sub" id="vSub"></p>
+    </div>
+    <div class="chips" id="chips" role="group" aria-label="Show or hide causes"></div>
+    <div class="chart" id="chart"></div>
+    <div class="yearpick"><label for="yr">Pick a year</label><input type="range" id="yr" step="1"></div>
+    <div class="readout" id="readout" aria-live="polite"></div>
+    <p class="event" id="event"></p>
+    <p class="notice" id="vNotice"></p>
+    <p class="caveat" id="vCaveat"></p>
+    <details>
+      <summary>Show the numbers as a table</summary>
+      <div class="tablewrap"><table id="tbl"></table></div>
+    </details>
+  </section>
+
   <section class="card prose after hidden">
     <h2>The fuller picture</h2>
     <p><strong>Infections gave way to chronic disease.</strong> In 1900, four of the top ten causes were infections, and together they caused about a third of all deaths. In 2024, none of the top ten is an infection. Public health researchers call this shift the “epidemiologic transition.”</p>
     <p><strong>Most of the change came from how people lived.</strong> Clean water, sewers, safer food, better housing, and vaccines cut infectious deaths, many of them before antibiotics were widely available in the 1940s. Historians and economists still debate how much each one mattered.</p>
     <p><strong>Children gained the most.</strong> Diarrhea and diphtheria mostly killed infants and young children. Life expectancy at birth was so low in 1900 largely because so many people died young. Adults who reached old age then lived to ages we’d recognize.</p>
-    <p><strong>Heart disease and cancer look worse than they are.</strong> Their rates rose because far more people now live to the ages when these diseases strike. Adjusted for age, death rates from heart disease have fallen sharply since the mid-1900s, and cancer death rates have been falling since the early 1990s.</p>
+    <p><strong>Heart disease and cancer look worse than they are.</strong> Their rates rose because far more people now live to the ages when these diseases strike. Adjusted for age, death rates from heart disease have fallen sharply since the mid-1900s, and cancer death rates have been falling since the early 1990s. The “Today’s leading causes” chart above shows both.</p>
     <p><strong>Infections can come back.</strong> COVID-19 was the third leading cause of death in 2020 and 2021. By 2024 it had dropped out of the top ten, and life expectancy reached 79.0 years, the highest on record.</p>
     <p><strong>Not every cause is about germs or aging.</strong> Suicide and chronic liver disease are in today’s top ten, and drug overdoses account for many of the deaths counted as accidents. Sociologists study these because they follow social patterns such as region, work, and isolation.</p>
     <h3>Talk about it</h3>
@@ -149,6 +202,7 @@ footer { font-size: .85rem; color: var(--muted); }
       <li>Clean water and sewers saved more lives than most medical treatments. Why do we tend to give doctors and medicines the credit?</li>
       <li>“Senility” was the ninth leading cause in 1900. Alzheimer’s disease is sixth today. What does it tell you that the names of causes change? Who decides what counts as a cause of death?</li>
       <li>Today’s leading causes are tied to age, diet, smoking, alcohol, and drugs. Are these personal choices, or are they shaped by where and how people live? What would a sociologist ask?</li>
+      <li>In the “Infections that faded” chart, tuberculosis deaths fell by about three-fourths between 1900 and 1940, before there was a drug to treat it. What else could explain the drop? What evidence would you want?</li>
       <li>These are national averages. Which groups do you think are doing better or worse than the average, and why?</li>
     </ol>
   </section>
@@ -157,8 +211,9 @@ footer { font-size: .85rem; color: var(--muted); }
     <h3>About the data</h3>
     <p><strong>1900:</strong> National Center for Health Statistics, “Leading Causes of Death, 1900–1998.” In 1900, only ten states and the District of Columbia kept death records good enough to count, so the figures describe those places, which were more urban than the country as a whole. Cause names are the ones used at the time; the 1900 label for stroke was “intracranial lesions of vascular origin.”</p>
     <p><strong>2024:</strong> National Center for Health Statistics, final mortality data. Rates here are deaths divided by population (crude rates), calculated from the published death counts and the overall rate of 903.4 per 100,000, so they can be compared with 1900. NCHS usually reports age-adjusted rates, which are different numbers.</p>
+    <p><strong>The charts:</strong> “Today’s leading causes” and “Flu and COVID-19” use age-adjusted death rates from the National Center for Health Statistics: a 1900–2018 series for five major causes, continued through 2024 with the rates in each year’s “Mortality in the United States” report. Those reports list only the ten leading causes, so a line ends when its cause leaves the list. “Infections that faded” uses crude rates from “Leading Causes of Death, 1900–1998,” which also lists only each year’s leading causes. Age-adjusted and crude rates can’t be compared with each other, so they’re on separate charts.</p>
     <p><strong>Life expectancy:</strong> 47.3 years in 1900 and 79.0 in 2024, from NCHS life tables.</p>
-    <p><strong>Sources:</strong> National Center for Health Statistics, <a href="https://stacks.cdc.gov/view/cdc/53236">“Leading Causes of Death, 1900–1998”</a>; Xu, Jiaquan, Sherry L. Murphy, Kenneth D. Kochanek and Elizabeth Arias. 2026. <a href="https://www.cdc.gov/nchs/products/databriefs/db548.htm">“Mortality in the United States, 2024.”</a> NCHS Data Brief No. 548; NCHS FastStats, <a href="https://www.cdc.gov/nchs/fastats/deaths.htm">“Deaths and Mortality.”</a></p>
+    <p><strong>Sources:</strong> National Center for Health Statistics, <a href="https://stacks.cdc.gov/view/cdc/53236">“Leading Causes of Death, 1900–1998”</a>; Xu, Jiaquan, Sherry L. Murphy, Kenneth D. Kochanek and Elizabeth Arias. 2026. <a href="https://www.cdc.gov/nchs/products/databriefs/db548.htm">“Mortality in the United States, 2024.”</a> NCHS Data Brief No. 548; NCHS FastStats, <a href="https://www.cdc.gov/nchs/fastats/deaths.htm">“Deaths and Mortality”</a>; National Center for Health Statistics, <a href="https://data.cdc.gov/d/6rkc-nb2q">“Age-adjusted Death Rates for Selected Major Causes of Death”</a> (1900–2018); and “Mortality in the United States” for 2019 through 2023 (NCHS Data Briefs No. <a href="https://www.cdc.gov/nchs/products/databriefs/db395.htm">395</a>, <a href="https://www.cdc.gov/nchs/products/databriefs/db427.htm">427</a>, <a href="https://www.cdc.gov/nchs/products/databriefs/db456.htm">456</a>, <a href="https://www.cdc.gov/nchs/products/databriefs/db492.htm">492</a>, and <a href="https://www.cdc.gov/nchs/products/databriefs/db521.htm">521</a>).</p>
     <h3>How to cite this page</h3>
     <p>Sharp, Gwen. 2026. “What Killed Us, Then and Now.” <a href="https://gsharpokie.github.io/causesofdeath/">https://gsharpokie.github.io/causesofdeath/</a></p>
     <p>Spot an error? <a href="https://github.com/gsharpokie/causesofdeath/issues/new">Suggest a correction</a> (needs a free GitHub account).</p>
@@ -218,7 +273,160 @@ $("stats").innerHTML =
   stat(`${infShare}% → 0`, "share of all deaths from infections in the top ten") +
   stat(`${Math.round((1 - Y2024.all / Y1900.all) * 100)}% lower`, "overall death rate in 2024 than in 1900");
 $("skip").addEventListener("click", showAll);
-if (location.hash === "#lists") showAll();
+if (location.hash === "#lists" || location.hash === "#trends") showAll();
+if (location.hash === "#trends") document.getElementById("trends").scrollIntoView({ block: "start" });
+</script>
+
+<script>
+/* ---------- Follow a cause over time ---------- */
+(function () {
+/* DATA:START
+   Deaths per 100,000 people. Each series is {year: rate}.
+   HEART, CANCER, STROKE, ACCIDENT, FLU: age-adjusted rates. 1900-2018 from the CDC dataset "Age-adjusted Death Rates
+   for Selected Major Causes of Death"; 2019 onward from each year's NCHS "Mortality in the United States" data brief.
+   COVID: age-adjusted, from the same data briefs (listed only in years it was among the ten leading causes).
+   TB_CRUDE, DIARRHEA_CRUDE, FLU_CRUDE: crude rates from NCHS, "Leading Causes of Death, 1900-1998"
+   (listed only in years the cause was among the ten leading causes). */
+const HEART = {1900:265.4,1901:272.6,1902:285.2,1903:304.5,1904:331.5,1905:327.8,1906:325.5,1907:356.5,1908:328.6,1909:329.2,1910:345.1,1911:341.8,1912:346.0,1913:337.9,1914:346.4,1915:361.5,1916:373.3,1917:377.9,1918:366.2,1919:335.7,1920:375.0,1921:366.2,1922:392.1,1923:410.3,1924:410.5,1925:433.8,1926:465.7,1927:448.8,1928:478.9,1929:476.2,1930:467.9,1931:459.6,1932:482.8,1933:483.8,1934:502.9,1935:506.8,1936:546.2,1937:538.8,1938:528.9,1939:534.5,1940:558.5,1941:537.9,1942:531.7,1943:567.5,1944:541.1,1945:533.2,1946:527.7,1947:552.5,1948:549.0,1949:581.0,1950:588.8,1951:577.9,1952:568.8,1953:570.1,1954:544.6,1955:556.7,1956:560.6,1957:568.5,1958:563.6,1959:552.1,1960:559.0,1961:545.3,1962:556.9,1963:563.4,1964:543.3,1965:542.5,1966:541.2,1967:524.7,1968:531.0,1969:516.8,1970:492.7,1971:492.9,1972:490.2,1973:482.0,1974:458.8,1975:431.2,1976:426.9,1977:413.7,1978:409.9,1979:401.6,1980:412.1,1981:397.0,1982:389.0,1983:388.9,1984:378.8,1985:375.0,1986:365.1,1987:355.9,1988:352.5,1989:332.0,1990:321.8,1991:313.8,1992:306.1,1993:309.9,1994:299.7,1995:296.3,1996:288.3,1997:280.4,1998:272.4,1999:266.5,2000:257.6,2001:249.5,2002:244.6,2003:236.3,2004:221.6,2005:216.8,2006:205.5,2007:196.1,2008:192.1,2009:182.8,2010:179.1,2011:173.7,2012:170.5,2013:169.8,2014:167.0,2015:168.5,2016:165.5,2017:165.0,2018:163.6,2019:161.5,2020:168.2,2021:173.8,2022:167.2,2023:162.1,2024:157.6};
+const CANCER = {1900:114.8,1901:118.1,1902:119.7,1903:125.2,1904:127.9,1905:132.5,1906:128.8,1907:133.0,1908:134.5,1909:138.1,1910:143.1,1911:140.4,1912:144.7,1913:147.8,1914:146.6,1915:149.5,1916:152.2,1917:150.7,1918:148.4,1919:152.1,1920:159.0,1921:163.5,1922:165.6,1923:168.8,1924:170.6,1925:174.3,1926:177.3,1927:177.8,1928:177.8,1929:175.3,1930:174.5,1931:175.8,1932:179.2,1933:178.2,1934:181.6,1935:183.4,1936:186.8,1937:184.6,1938:185.7,1939:187.1,1940:187.8,1941:184.1,1942:183.8,1943:183.9,1944:183.8,1945:186.9,1946:187.1,1947:190.7,1948:193.4,1949:193.9,1950:193.9,1951:192.0,1952:194.2,1953:194.6,1954:194.3,1955:194.5,1956:195.6,1957:195.4,1958:192.0,1959:191.6,1960:193.9,1961:193.4,1962:193.3,1963:194.7,1964:193.6,1965:195.6,1966:196.5,1967:197.3,1968:198.8,1969:198.5,1970:198.6,1971:199.3,1972:200.3,1973:200.0,1974:201.5,1975:200.1,1976:202.5,1977:203.5,1978:204.9,1979:204.0,1980:207.9,1981:206.4,1982:208.3,1983:209.1,1984:210.8,1985:211.3,1986:211.5,1987:211.7,1988:212.5,1989:214.2,1990:216.0,1991:215.2,1992:213.5,1993:213.5,1994:211.7,1995:209.8,1996:206.7,1997:203.5,1998:200.7,1999:200.8,2000:199.6,2001:196.5,2002:194.3,2003:190.9,2004:186.8,2005:185.1,2006:181.8,2007:179.3,2008:176.4,2009:173.5,2010:172.8,2011:169.0,2012:166.5,2013:163.2,2014:161.2,2015:158.5,2016:155.8,2017:152.5,2018:149.1,2019:146.2,2020:144.1,2021:146.6,2022:142.3,2023:141.8,2024:139.4};
+const STROKE = {1900:244.2,1901:243.6,1902:237.8,1903:244.6,1904:255.2,1905:247.3,1906:245.9,1907:261.8,1908:239.0,1909:237.5,1910:238.5,1911:230.2,1912:228.7,1913:226.9,1914:231.3,1915:234.5,1916:235.7,1917:238.2,1918:228.0,1919:225.6,1920:238.5,1921:230.1,1922:238.9,1923:245.6,1924:246.4,1925:227.9,1926:228.2,1927:216.3,1928:223.4,1929:213.3,1930:203.9,1931:195.0,1932:194.4,1933:185.0,1934:184.5,1935:181.2,1936:189.8,1937:176.6,1938:171.4,1939:173.2,1940:177.2,1941:169.4,1942:166.8,1943:173.3,1944:164.4,1945:166.7,1946:158.8,1947:161.3,1948:157.4,1949:176.2,1950:180.7,1951:181.4,1952:180.2,1953:179.2,1954:173.4,1955:177.3,1956:177.4,1957:183.0,1958:183.0,1959:179.0,1960:177.9,1961:173.1,1962:174.0,1963:173.9,1964:167.0,1965:166.4,1966:165.8,1967:159.3,1968:162.5,1969:155.4,1970:147.7,1971:147.6,1972:147.3,1973:145.2,1974:136.8,1975:123.5,1976:117.4,1977:110.4,1978:103.7,1979:97.3,1980:96.4,1981:89.7,1982:84.4,1983:81.4,1984:78.9,1985:76.6,1986:73.3,1987:71.8,1988:70.8,1989:67.1,1990:65.5,1991:63.1,1992:61.6,1993:62.9,1994:62.8,1995:63.3,1996:62.6,1997:61.2,1998:59.4,1999:61.6,2000:60.9,2001:58.4,2002:57.2,2003:54.6,2004:51.2,2005:48.0,2006:44.8,2007:43.5,2008:42.1,2009:39.6,2010:39.1,2011:37.9,2012:36.9,2013:36.2,2014:36.5,2015:37.6,2016:37.3,2017:37.6,2018:37.1,2019:37.0,2020:38.8,2021:41.1,2022:39.5,2023:39.0,2024:38.6};
+const ACCIDENT = {1900:90.3,1901:109.3,1902:93.6,1903:106.9,1904:112.8,1905:108.5,1906:121.2,1907:122.3,1908:108.8,1909:108.0,1910:111.2,1911:113.5,1912:107.1,1913:108.2,1914:100.4,1915:95.2,1916:104.3,1917:107.0,1918:99.9,1919:86.9,1920:87.5,1921:83.2,1922:85.4,1923:91.2,1924:89.6,1925:92.2,1926:89.8,1927:86.3,1928:86.1,1929:84.3,1930:84.2,1931:81.2,1932:76.6,1933:76.2,1934:82.7,1935:80.8,1936:92.4,1937:81.8,1938:76.5,1939:74.7,1940:76.0,1941:72.7,1942:75.6,1943:82.1,1944:77.0,1945:74.9,1946:69.4,1947:69.9,1948:68.6,1949:57.6,1950:78.4,1951:79.7,1952:78.0,1953:75.4,1954:69.9,1955:70.9,1956:70.2,1957:69.1,1958:63.6,1959:63.2,1960:63.1,1961:60.6,1962:62.9,1963:64.0,1964:64.1,1965:65.8,1966:67.6,1967:66.2,1968:65.5,1969:64.9,1970:62.2,1971:60.3,1972:60.2,1973:59.3,1974:52.7,1975:50.8,1976:48.7,1977:48.8,1978:48.9,1979:46.5,1980:46.4,1981:43.4,1982:40.1,1983:39.1,1984:38.8,1985:38.5,1986:38.6,1987:38.2,1988:38.9,1989:37.7,1990:36.2,1991:34.7,1992:33.2,1993:34.2,1994:34.2,1995:34.4,1996:34.5,1997:34.2,1998:34.5,1999:35.3,2000:34.9,2001:35.7,2002:37.1,2003:37.6,2004:38.1,2005:39.5,2006:40.2,2007:40.4,2008:39.2,2009:37.5,2010:38.0,2011:39.1,2012:39.1,2013:39.4,2014:40.5,2015:43.2,2016:47.4,2017:49.4,2018:48.0,2019:49.3,2020:57.6,2021:64.7,2022:64.0,2023:62.3,2024:53.3};
+const FLU = {1900:297.5,1901:312.9,1902:219.3,1903:251.1,1904:291.2,1905:257.8,1906:222.5,1907:285.4,1908:234.6,1909:221.2,1910:238.4,1911:234.1,1912:213.7,1913:214.8,1914:202.4,1915:238.1,1916:278.5,1917:267.0,1918:612.4,1919:270.9,1920:279.2,1921:153.1,1922:207.6,1923:253.0,1924:182.0,1925:198.1,1926:233.0,1927:164.0,1928:236.4,1929:247.5,1930:159.8,1931:170.2,1932:180.0,1933:156.5,1934:152.9,1935:163.8,1936:186.7,1937:181.8,1938:124.3,1939:124.4,1940:117.6,1941:104.6,1942:84.7,1943:101.7,1944:94.7,1945:74.9,1946:69.9,1947:65.9,1948:58.0,1949:45.1,1950:48.1,1951:47.4,1952:43.1,1953:49.2,1954:36.2,1955:39.2,1956:40.8,1957:50.3,1958:47.4,1959:44.3,1960:53.7,1961:43.4,1962:47.1,1963:55.6,1964:45.4,1965:46.8,1966:47.9,1967:42.2,1968:52.8,1969:47.9,1970:41.7,1971:38.4,1972:41.3,1973:41.2,1974:35.5,1975:34.9,1976:38.8,1977:31.0,1978:34.5,1979:26.1,1980:31.4,1981:30.0,1982:26.5,1983:29.8,1984:30.6,1985:34.5,1986:34.8,1987:33.8,1988:37.3,1989:35.9,1990:36.8,1991:34.9,1992:33.1,1993:35.2,1994:33.9,1995:33.8,1996:33.2,1997:33.6,1998:34.6,1999:23.5,2000:23.7,2001:22.2,2002:23.2,2003:22.6,2004:20.4,2005:21.0,2006:18.4,2007:16.8,2008:17.6,2009:16.5,2010:15.1,2011:15.7,2012:14.4,2013:15.9,2014:15.1,2015:15.2,2016:13.5,2017:14.3,2018:14.9,2019:12.3,2020:13.0};
+const COVID = {2020:85.0,2021:104.1,2022:44.5,2023:11.9};
+const TB_CRUDE = {1900:194.4,1901:189.9,1902:174.2,1903:177.2,1904:188.1,1905:179.9,1906:175.8,1907:174.2,1908:162.1,1909:156.3,1910:153.8,1911:155.1,1912:145.4,1913:143.5,1914:141.7,1915:140.1,1916:138.4,1917:143.5,1918:149.8,1919:125.6,1920:113.1,1921:97.6,1922:95.3,1923:91.7,1924:87.9,1925:84.8,1926:85.5,1927:79.6,1928:78.3,1929:75.3,1930:71.1,1931:67.8,1932:62.5,1933:59.6,1934:56.7,1935:55.1,1936:55.9,1937:53.8,1938:49.1,1939:47.1,1940:45.9,1941:44.5,1942:43.1,1943:42.5,1944:41.2,1945:39.9,1946:36.4,1947:33.5,1948:30.0,1949:26.3,1950:22.5,1951:20.1,1952:15.8,1953:12.4};
+const DIARRHEA_CRUDE = {1900:142.7,1901:118.5,1902:104.9,1903:100.3,1904:111.5,1905:118.4,1906:123.6,1907:115.0,1908:112.5,1909:101.8,1910:115.4,1911:86.8,1912:79.6,1913:86.7,1914:75.1,1915:67.5,1916:75.5,1917:75.2,1918:72.2,1919:55.2,1920:53.7,1921:50.7,1922:38.9,1923:39.1,1924:33.7,1925:38.6,1926:32.9,1927:27.1,1928:26.4,1929:23.3,1930:26.0,1931:20.5};
+const FLU_CRUDE = {1900:202.2,1901:197.2,1902:161.3,1903:169.3,1904:192.1,1905:169.3,1906:156.3,1907:180.0,1908:150.9,1909:148.1,1910:155.9,1911:145.4,1912:138.4,1913:140.8,1914:132.4,1915:145.9,1916:163.3,1917:164.5,1918:588.5,1919:223.0,1920:207.3,1921:98.7,1922:132.3,1923:151.7,1924:115.2,1925:121.7,1926:141.7,1927:102.2,1928:142.5,1929:146.5,1930:102.5,1931:107.5,1932:107.3,1933:95.7,1934:96.9,1935:104.2,1936:119.6,1937:114.9,1938:80.4,1939:75.7,1940:70.3,1941:63.8,1942:55.7,1943:67.1,1944:61.6,1945:51.6,1946:44.5,1947:43.1,1948:38.7,1949:30.0,1950:31.3,1951:31.4,1952:29.7,1953:33.0};
+/* DATA:END */
+
+const $ = id => document.getElementById(id);
+const years = o => Object.keys(o).map(Number).sort((a, b) => a - b);
+const last = o => { const y = years(o).pop(); return {y, v: o[y]}; };
+const peak = o => { const y = years(o).reduce((b, c) => o[c] > o[b] ? c : b); return {y, v: o[y]}; };
+const f1 = v => v.toFixed(1);
+const drop = (a, b) => Math.round((1 - b / a) * 100);
+
+// Notes shown when a student lands on one of these years.
+const EVENTS = { 1918: "1918 was the worst year of the influenza pandemic.", 2020: "2020 was the first year of the COVID-19 pandemic." };
+
+const VIEWS = [
+  {id: "leading", btn: "Today’s leading causes", title: "Heart disease, cancer, stroke, and accidents, 1900–2024",
+    sub: "Deaths per 100,000 people, adjusted for age.",
+    series: [{name: "Heart disease", d: HEART}, {name: "Cancer", d: CANCER}, {name: "Stroke", d: STROKE}, {name: "Accidents", d: ACCIDENT}], start: 1950,
+    notice: () => `Heart disease death rates peaked in ${peak(HEART).y} and have fallen ${drop(peak(HEART).v, last(HEART).v)}% since. Cancer peaked in ${peak(CANCER).y}. Stroke has fallen ${drop(STROKE[1900], last(STROKE).v)}% since 1900.`,
+    caveat: "Age-adjusted rates show what the death rate would be if the population had the same mix of ages every year, so they don’t rise just because more people live to old age. That’s why these numbers differ from the lists above, which divide deaths by the whole population. “Accidents” includes drug overdoses and car crashes."},
+  {id: "infections", btn: "Infections that faded", title: "Tuberculosis, diarrhea, and pneumonia and flu, 1900–1953",
+    sub: "Deaths per 100,000 people (crude rates, not adjusted for age).",
+    series: [{name: "Tuberculosis", d: TB_CRUDE}, {name: "Pneumonia and flu", d: FLU_CRUDE}, {name: "Diarrhea and intestinal infections", short: "Diarrhea", d: DIARRHEA_CRUDE}], start: 1918,
+    notice: () => `Tuberculosis fell from ${f1(TB_CRUDE[1900])} deaths per 100,000 in 1900 to ${f1(TB_CRUDE[1940])} in 1940, before antibiotics for it existed, and to ${f1(last(TB_CRUDE).v)} by ${last(TB_CRUDE).y}. Diarrhea deaths fell ${drop(DIARRHEA_CRUDE[1900], last(DIARRHEA_CRUDE).v)}% by ${last(DIARRHEA_CRUDE).y}.`,
+    caveat: "Each line stops when the cause dropped out of the ten leading causes of death, because the source lists only the top ten: diarrhea after 1931 and tuberculosis after 1953. Figures before 1933 cover only the states that kept reliable death records. The definition of pneumonia and flu changed slightly in 1949."},
+  {id: "flu", btn: "Flu and COVID-19", title: "Flu and pneumonia, and COVID-19, 1900–2023",
+    sub: "Deaths per 100,000 people, adjusted for age.",
+    series: [{name: "Flu and pneumonia", d: FLU}, {name: "COVID-19", d: COVID}], start: 1918,
+    notice: () => `The death rate from flu and pneumonia reached ${f1(FLU[1918])} per 100,000 in 1918, the highest for any single cause on this page. COVID-19’s worst year was ${peak(COVID).y}, at ${f1(peak(COVID).v)}.`,
+    caveat: "The source for recent years lists only the ten leading causes of death, so the flu and pneumonia line ends in 2020 and the COVID-19 line ends in 2023, the last years each was on the list. Age-adjusted rates aren’t comparable to the crude rates in the “Infections that faded” chart."}
+];
+const COLORS = ["var(--s1)", "var(--s2)", "var(--s3)", "var(--s4)"];
+const DASH = ["", "", "7 4", "2 4"];
+
+let W, L, R, PH, H, NARROW;
+const TOP = 14;
+function sizeChart() {
+  NARROW = window.innerWidth < 600;
+  W = NARROW ? 430 : 700; L = NARROW ? 40 : 46; R = NARROW ? 16 : 150; PH = NARROW ? 250 : 300; H = TOP + PH + 34;
+}
+sizeChart();
+let V = null, X0 = 0, X1 = 0, YMAX = 1, allYears = [], on = {};
+const x = y => L + (y - X0) * (W - L - R) / (X1 - X0);
+const yy = v => TOP + PH - v / YMAX * PH;
+const shown = () => V.series.filter(s => on[s.name]);
+const colorOf = s => COLORS[V.series.indexOf(s)];
+const dashOf = s => DASH[V.series.indexOf(s)];
+
+function niceMax(m) { const steps = [10, 20, 25, 50, 100, 200, 250, 500, 1000]; const st = steps.find(s => m / s <= 6) || 1000; return {max: Math.ceil(m / st) * st, step: st}; }
+function linePath(d) { return years(d).map((y, i) => (i ? "L" : "M") + x(y).toFixed(1) + " " + yy(d[y]).toFixed(1)).join(" "); }
+function endLabels() {
+  const items = shown().map(s => ({name: s.short || s.name, x: x(last(s.d).y), y: yy(last(s.d).v)})).sort((a, b) => a.y - b.y);
+  const GAP = 19;
+  for (let k = 1; k < items.length; k++) for (let j = 0; j < k; j++) if (Math.abs(items[k].x - items[j].x) < 60 && items[k].y - items[j].y < GAP) items[k].y = items[j].y + GAP;
+  const over = items.length ? items[items.length - 1].y - (TOP + PH + 4) : 0;
+  if (over > 0) items.forEach(it => it.y -= over);
+  return items.map(it => `<text class="end" x="${(it.x + 9).toFixed(1)}" y="${(it.y + 5).toFixed(1)}">${it.name}</text>`).join("");
+}
+function describe() {
+  return V.title + ". " + shown().map(s => { const a = years(s.d)[0], b = last(s.d); return `${s.name}: ${f1(s.d[a])} in ${a}, ${f1(b.v)} in ${b.y}.`; }).join(" ");
+}
+function draw() {
+  const vis = shown();
+  const nm = niceMax(Math.max(1, ...vis.flatMap(s => Object.values(s.d)))); YMAX = nm.max;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${describe().replace(/"/g, "&quot;")}">`;
+  for (let v = 0; v <= YMAX; v += nm.step) s += `<line x1="${L}" x2="${x(X1)}" y1="${yy(v)}" y2="${yy(v)}" stroke="var(--line)"/><text x="${L - 8}" y="${yy(v) + 5}" text-anchor="end">${v}</text>`;
+  const span = X1 - X0, stepT = span > 80 ? 20 : 10;
+  for (let y = Math.ceil(X0 / stepT) * stepT; y <= X1 - span * (NARROW ? .14 : .08); y += stepT) s += `<text x="${x(y)}" y="${H - 8}" text-anchor="middle">${y}</text>`;
+  s += `<text x="${NARROW ? W - 2 : x(X1)}" y="${H - 8}" text-anchor="${NARROW ? "end" : "middle"}">${X1}</text>`;
+  vis.forEach(se => {
+    s += `<path d="${linePath(se.d)}" fill="none" stroke="${colorOf(se)}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"${dashOf(se) ? ` stroke-dasharray="${dashOf(se)}"` : ""}/>`;
+  });
+  if (!NARROW) s += endLabels();
+  s += `<line id="cursor" x1="0" x2="0" y1="${TOP}" y2="${TOP + PH}" stroke="var(--ink)" stroke-width="1.2" opacity=".55"/><g id="markers"></g>`;
+  s += `<rect x="${L}" y="${TOP}" width="${x(X1) - L}" height="${PH}" fill="transparent"/></svg>`;
+  $("chart").innerHTML = s;
+  const svg = $("chart").querySelector("svg");
+  const pick = ev => {
+    const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+    const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+    setYear(Math.round(X0 + (p.x - L) / (W - L - R) * (X1 - X0)));
+  };
+  svg.addEventListener("pointermove", pick); svg.addEventListener("pointerdown", pick);
+}
+function setYear(target) {
+  const y = Math.max(X0, Math.min(X1, target));
+  $("yr").value = y;
+  const c = $("cursor"); c.setAttribute("x1", x(y)); c.setAttribute("x2", x(y));
+  const vis = shown();
+  $("markers").innerHTML = vis.map(s => s.d[y] == null ? "" : `<circle cx="${x(y)}" cy="${yy(s.d[y])}" r="5.5" fill="${colorOf(s)}" stroke="var(--surface)" stroke-width="2"/>`).join("");
+  $("readout").innerHTML = `<div><div class="num">${y}</div><div class="cap">Year</div></div>` + vis.map(s => {
+    const v = s.d[y], y0 = years(s.d)[0];
+    let chg = "No figure for this year";
+    if (v != null) { const pc = Math.round((v / s.d[y0] - 1) * 100); chg = y === y0 ? "First year on the chart" : pc === 0 ? `Same as in ${y0}` : `${Math.abs(pc)}% ${pc < 0 ? "lower" : "higher"} than in ${y0}`; }
+    return `<div><div class="num"${v == null ? ' style="color:var(--muted)"' : ""}>${v == null ? "—" : f1(v)}</div><div class="cap"><span class="sw" style="background:${colorOf(s)}"></span>${s.short || s.name}</div><div class="chg">${chg}</div></div>`;
+  }).join("");
+  $("event").textContent = EVENTS[y] || "";
+  $("event").classList.toggle("hidden", !EVENTS[y]);
+}
+function drawTable() {
+  let t = "<thead><tr><th>Year</th>" + V.series.map(s => `<th>${s.short || s.name}</th>`).join("") + "</tr></thead><tbody>";
+  allYears.forEach(y => t += `<tr><td>${y}</td>` + V.series.map(s => `<td>${s.d[y] == null ? "—" : f1(s.d[y])}</td>`).join("") + "</tr>");
+  $("tbl").innerHTML = t + "</tbody>";
+}
+function chipLine(s) { return `<svg width="26" height="10" aria-hidden="true"><line x1="1" y1="5" x2="25" y2="5" stroke="${colorOf(s)}" stroke-width="3" stroke-linecap="round"${dashOf(s) ? ` stroke-dasharray="${dashOf(s)}"` : ""}/></svg>`; }
+function drawChips() {
+  $("chips").innerHTML = V.series.map((s, i) => `<button data-i="${i}" aria-pressed="${!!on[s.name]}">${chipLine(s)}${s.name}</button>`).join("");
+}
+function showView(id) {
+  V = VIEWS.find(v => v.id === id);
+  on = {}; V.series.forEach(s => on[s.name] = true);
+  allYears = [...new Set(V.series.flatMap(s => years(s.d)))].sort((a, b) => a - b);
+  X0 = allYears[0]; X1 = allYears[allYears.length - 1];
+  document.querySelectorAll("#views button").forEach(b => b.setAttribute("aria-pressed", b.dataset.id === id));
+  $("vTitle").textContent = V.title; $("vSub").textContent = V.sub;
+  $("vNotice").innerHTML = "<strong>What to notice:</strong> " + V.notice();
+  $("vCaveat").textContent = "Keep in mind: " + V.caveat;
+  $("yr").min = X0; $("yr").max = X1;
+  drawChips(); draw(); drawTable(); setYear(V.start);
+}
+$("views").innerHTML = VIEWS.map(v => `<button data-id="${v.id}" aria-pressed="false">${v.btn}</button>`).join("");
+$("views").addEventListener("click", e => { const b = e.target.closest("button"); if (b) showView(b.dataset.id); });
+$("chips").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const s = V.series[+b.dataset.i];
+  if (on[s.name] && shown().length === 1) return;   // keep at least one line
+  on[s.name] = !on[s.name];
+  const y = +$("yr").value; drawChips(); draw(); setYear(y);
+});
+$("yr").addEventListener("input", e => setYear(+e.target.value));
+window.addEventListener("resize", () => { const was = NARROW; sizeChart(); if (was !== NARROW) { const y = +$("yr").value; draw(); setYear(y); } });
+showView("leading");
+})();
 </script>
 </body>
 </html>
