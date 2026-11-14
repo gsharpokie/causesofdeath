@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What Killed Us, Then and Now</title>
+<meta name="description" content="In 1900, the top killers in the U.S. were infections. Guess what changed, then compare the ten leading causes of death in 1900 and 2024.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://gsharpokie.github.io/causesofdeath/">
+<meta property="og:title" content="What Killed Us, Then and Now">
+<meta property="og:description" content="In 1900, the top killers in the U.S. were infections. Guess what changed, then compare the ten leading causes of death in 1900 and 2024.">
+<meta property="og:image" content="https://gsharpokie.github.io/causesofdeath/preview.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What Killed Us, Then and Now: bar charts of the ten leading causes of death in 1900 and 2024.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:creator" content="@gsharpokie">
+<meta name="twitter:title" content="What Killed Us, Then and Now">
+<meta name="twitter:description" content="In 1900, the top killers in the U.S. were infections. Guess what changed, then compare the ten leading causes of death in 1900 and 2024.">
+<meta name="twitter:image" content="https://gsharpokie.github.io/causesofdeath/preview.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%233a2a22'/%3E%3Crect x='6' y='7' width='20' height='4' fill='%23d9793d'/%3E%3Crect x='6' y='14' width='14' height='4' fill='%23e9dccf'/%3E%3Crect x='6' y='21' width='8' height='4' fill='%236fa8b5'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: one column. Three guesses, then two top-ten lists (1900 and 2024) drawn as bars on one shared scale,
+   each cause tagged by type (infection, chronic disease, injury, other) in words as well as color. */
+:root {
+  --paper: #f6f3ee; --surface: #ffffff; --ink: #2a211c; --muted: #6a5f57; --line: #ddd5ca;
+  --inf: #c2571a; --chr: #2d6f80; --inj: #7a5aa6; --oth: #7d7468;
+  --focus: #c2571a;
+  --display: "Zilla Slab", Rockwell, Georgia, serif;
+  --body: Aptos, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #181411; --surface: #221d19; --ink: #f1ebe4; --muted: #b3a89d; --line: #3d352e;
+    --inf: #f0935a; --chr: #7cc0d0; --inj: #b9a0e0; --oth: #a69c90; --focus: #f0935a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #181411; --surface: #221d19; --ink: #f1ebe4; --muted: #b3a89d; --line: #3d352e;
+  --inf: #f0935a; --chr: #7cc0d0; --inj: #b9a0e0; --oth: #a69c90; --focus: #f0935a; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 1.05rem; line-height: 1.55; }
+.wrap { max-width: 50rem; margin: 0 auto; padding: 2rem 1rem 3rem; display: grid; gap: 1.6rem; }
+header { display: grid; gap: .45rem; }
+.kicker { font-size: .85rem; color: var(--muted); }
+.kicker a, footer a, .notes a, .prose a { color: var(--ink); }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(2.3rem, 8vw, 3.5rem); line-height: 1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 700; font-size: 1.5rem; line-height: 1.15; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--display); font-weight: 600; font-size: 1.2rem; margin: 0; }
+.lede { margin: 0; max-width: 62ch; color: var(--muted); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1.4rem; display: grid; gap: .9rem; }
+.step { font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.q { font-size: 1.15rem; font-weight: 600; margin: 0; }
+.choices { display: flex; flex-wrap: wrap; gap: .5rem; }
+.choices button, .primary { font: inherit; font-weight: 600; padding: .6rem 1rem; border-radius: 10px; border: 1px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; }
+.choices button[aria-pressed="true"], .primary { background: var(--ink); color: var(--paper); }
+.linkish { font: inherit; background: none; border: none; padding: 0; color: var(--ink); text-decoration: underline; cursor: pointer; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.guess-row { display: flex; align-items: center; gap: 1rem; }
+.guess-row input { flex: 1; accent-color: var(--inf); height: 2rem; }
+.guess-val { font-family: var(--display); font-weight: 700; font-size: 2rem; min-width: 3ch; text-align: right; color: var(--inf); font-variant-numeric: tabular-nums; }
+.answer { border-left: 4px solid var(--chr); padding: .2rem 0 .2rem .9rem; margin: 0; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.6rem; }
+.col { display: grid; gap: .55rem; align-content: start; }
+.col h3 span { font-family: var(--body); font-size: .85rem; font-weight: 400; color: var(--muted); }
+.item { display: grid; gap: .12rem; }
+.item .top { display: flex; justify-content: space-between; gap: .6rem; font-size: .92rem; line-height: 1.3; }
+.item .top b { font-variant-numeric: tabular-nums; }
+.item .track { height: .7rem; background: var(--line); border-radius: 3px; overflow: hidden; }
+.item .fill { height: 100%; border-radius: 3px; }
+.item .tag { font-size: .75rem; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: .4rem 1rem; font-size: .85rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: .35rem; }
+.sw { width: .85rem; height: .85rem; border-radius: 2px; display: inline-block; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .7rem; }
+.stat { border: 1px solid var(--line); border-radius: 10px; padding: .7rem .9rem; }
+.stat .num { font-family: var(--display); font-weight: 700; font-size: 1.6rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat .cap { font-size: .85rem; color: var(--muted); }
+.prose p, .prose ol { margin: 0 0 .7rem; max-width: 64ch; }
+.prose li { margin-bottom: .4rem; }
+.notes { font-size: .88rem; color: var(--muted); }
+footer { font-size: .85rem; color: var(--muted); }
+.hidden { display: none !important; }
+@media (max-width: 620px) { .cols { grid-template-columns: 1fr; } .card { padding: 1.1rem; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">A companion to <em>A Sociology Experiment</em>, Chapter 15: Health and Illness · By Gwen Sharp · <a href="https://x.com/gsharpokie">@gsharpokie</a></div>
+    <h1>What Killed Us, Then and Now</h1>
+    <p class="lede">What people die of says a lot about how a society lives: its water, housing, work, medicine, and how long people last. Make three guesses about the United States in 1900, then compare the leading causes of death then and now.</p>
+  </header>
+
+  <section class="card" aria-live="polite">
+    <div class="step">Guess 1 of 3</div>
+    <p class="q">Which of these was the leading cause of death in the U.S. in 1900?</p>
+    <div class="choices" id="c1"><button data-v="heart">Heart disease</button><button data-v="cancer">Cancer</button><button data-v="pneu">Pneumonia and flu</button><button data-v="acc">Accidents</button></div>
+    <p class="answer hidden" id="a1"></p>
+  </section>
+
+  <section class="card" aria-live="polite">
+    <div class="step">Guess 2 of 3</div>
+    <p class="q">A baby born in the U.S. in 1900 could expect to live how many years, on average?</p>
+    <div class="guess-row"><input type="range" id="s2" min="20" max="90" value="55" aria-label="Your guess in years"><output id="v2" class="guess-val" for="s2">55</output></div>
+    <div><button class="primary" id="b2">Lock in my guess</button></div>
+    <p class="answer hidden" id="a2"></p>
+  </section>
+
+  <section class="card" aria-live="polite">
+    <div class="step">Guess 3 of 3</div>
+    <p class="q">Cancer kills more Americans per 100,000 people today than in 1900. What’s the main reason?</p>
+    <div class="choices" id="c3"><button data-v="chem">More chemicals and pollution</button><button data-v="age">People live long enough to get it</button><button data-v="care">Medical care got worse</button></div>
+    <p class="answer hidden" id="a3"></p>
+  </section>
+
+  <p class="lede" id="gate">The comparison appears after your third guess. <button class="linkish" id="skip">Skip the guesses</button></p>
+
+  <section class="card after hidden">
+    <h2>The ten leading causes of death</h2>
+    <p class="lede">Deaths per 100,000 people in one year. Both lists use the same scale.</p>
+    <div class="legend" aria-hidden="true">
+      <span><span class="sw" style="background:var(--inf)"></span>Infection</span>
+      <span><span class="sw" style="background:var(--chr)"></span>Chronic disease</span>
+      <span><span class="sw" style="background:var(--inj)"></span>Injury</span>
+      <span><span class="sw" style="background:var(--oth)"></span>Other</span>
+    </div>
+    <div class="cols"><div class="col" id="col1900"></div><div class="col" id="col2024"></div></div>
+    <div class="stats" id="stats"></div>
+  </section>
+
+  <section class="card prose after hidden">
+    <h2>The fuller picture</h2>
+    <p><strong>Infections gave way to chronic disease.</strong> In 1900, four of the top ten causes were infections, and together they caused about a third of all deaths. In 2024, none of the top ten is an infection. Public health researchers call this shift the “epidemiologic transition.”</p>
+    <p><strong>Most of the change came from how people lived.</strong> Clean water, sewers, safer food, better housing, and vaccines cut infectious deaths, many of them before antibiotics were widely available in the 1940s. Historians and economists still debate how much each one mattered.</p>
+    <p><strong>Children gained the most.</strong> Diarrhea and diphtheria mostly killed infants and young children. Life expectancy at birth was so low in 1900 largely because so many people died young. Adults who reached old age then lived to ages we’d recognize.</p>
+    <p><strong>Heart disease and cancer look worse than they are.</strong> Their rates rose because far more people now live to the ages when these diseases strike. Adjusted for age, death rates from heart disease have fallen sharply since the mid-1900s, and cancer death rates have been falling since the early 1990s.</p>
+    <p><strong>Infections can come back.</strong> COVID-19 was the third leading cause of death in 2020 and 2021. By 2024 it had dropped out of the top ten, and life expectancy reached 79.0 years, the highest on record.</p>
+    <p><strong>Not every cause is about germs or aging.</strong> Suicide and chronic liver disease are in today’s top ten, and drug overdoses account for many of the deaths counted as accidents. Sociologists study these because they follow social patterns such as region, work, and isolation.</p>
+    <h3>Talk about it</h3>
+    <ol>
+      <li>Which change between the two lists surprised you most?</li>
+      <li>Clean water and sewers saved more lives than most medical treatments. Why do we tend to give doctors and medicines the credit?</li>
+      <li>“Senility” was the ninth leading cause in 1900. Alzheimer’s disease is sixth today. What does it tell you that the names of causes change? Who decides what counts as a cause of death?</li>
+      <li>Today’s leading causes are tied to age, diet, smoking, alcohol, and drugs. Are these personal choices, or are they shaped by where and how people live? What would a sociologist ask?</li>
+      <li>These are national averages. Which groups do you think are doing better or worse than the average, and why?</li>
+    </ol>
+  </section>
+
+  <section class="notes prose after hidden">
+    <h3>About the data</h3>
+    <p><strong>1900:</strong> National Center for Health Statistics, “Leading Causes of Death, 1900–1998.” In 1900, only ten states and the District of Columbia kept death records good enough to count, so the figures describe those places, which were more urban than the country as a whole. Cause names are the ones used at the time; the 1900 label for stroke was “intracranial lesions of vascular origin.”</p>
+    <p><strong>2024:</strong> National Center for Health Statistics, final mortality data. Rates here are deaths divided by population (crude rates), calculated from the published death counts and the overall rate of 903.4 per 100,000, so they can be compared with 1900. NCHS usually reports age-adjusted rates, which are different numbers.</p>
+    <p><strong>Life expectancy:</strong> 47.3 years in 1900 and 79.0 in 2024, from NCHS life tables.</p>
+    <p><strong>Sources:</strong> National Center for Health Statistics, <a href="https://stacks.cdc.gov/view/cdc/53236">“Leading Causes of Death, 1900–1998”</a>; Xu, Jiaquan, Sherry L. Murphy, Kenneth D. Kochanek and Elizabeth Arias. 2026. <a href="https://www.cdc.gov/nchs/products/databriefs/db548.htm">“Mortality in the United States, 2024.”</a> NCHS Data Brief No. 548; NCHS FastStats, <a href="https://www.cdc.gov/nchs/fastats/deaths.htm">“Deaths and Mortality.”</a></p>
+    <h3>How to cite this page</h3>
+    <p>Sharp, Gwen. 2026. “What Killed Us, Then and Now.” <a href="https://gsharpokie.github.io/causesofdeath/">https://gsharpokie.github.io/causesofdeath/</a></p>
+    <p>Spot an error? <a href="https://github.com/gsharpokie/causesofdeath/issues/new">Suggest a correction</a> (needs a free GitHub account).</p>
+  </section>
+
+  <footer>Created by Gwen Sharp (<a href="https://x.com/gsharpokie">@gsharpokie</a>). Licensed under <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a>.</footer>
+</div>
+
+<script>
+// 1900: NCHS, Leading Causes of Death 1900-1998 (death registration states), rate per 100,000.
+const Y1900 = { all: 1719.1, life: 47.3, list: [
+  ["Pneumonia and flu", 202.2, "inf"], ["Tuberculosis", 194.4, "inf"], ["Diarrhea and intestinal infections", 142.7, "inf"],
+  ["Heart disease", 137.4, "chr"], ["Stroke", 106.9, "chr"], ["Kidney disease", 88.6, "chr"], ["Accidents", 72.3, "inj"],
+  ["Cancer", 64.0, "chr"], ["Senility", 50.2, "oth"], ["Diphtheria", 40.3, "inf"] ] };
+// 2024: NCHS final data. Number of deaths; crude rates are calculated below from the total and the overall crude rate.
+const Y2024 = { all: 903.4, life: 79.0, total: 3072666, list: [
+  ["Heart disease", 683491, "chr"], ["Cancer", 619876, "chr"], ["Accidents", 197449, "inj"], ["Stroke", 166852, "chr"],
+  ["Chronic lung disease", 145643, "chr"], ["Alzheimer’s disease", 116022, "chr"], ["Diabetes", 94445, "chr"],
+  ["Kidney disease", 55081, "chr"], ["Chronic liver disease", 52274, "chr"], ["Suicide", 48824, "inj"] ] };
+const pop = Y2024.total / Y2024.all * 100000;
+Y2024.list = Y2024.list.map(([n, d, t]) => [n, Math.round(d / pop * 1e6) / 10, t]);
+
+const TAG = { inf: ["Infection", "var(--inf)"], chr: ["Chronic disease", "var(--chr)"], inj: ["Injury", "var(--inj)"], oth: ["Other", "var(--oth)"] };
+const $ = id => document.getElementById(id);
+const MAX = 210;
+let done = 0;
+function showAll() { document.querySelectorAll(".after").forEach(e => e.classList.remove("hidden")); $("gate").classList.add("hidden"); }
+function answered() { if (++done >= 3) showAll(); }
+
+function choose(group, ans, correct, text) {
+  const btns = document.querySelectorAll(`#${group} button`);
+  btns.forEach(b => b.addEventListener("click", () => {
+    btns.forEach(x => { x.setAttribute("aria-pressed", x === b); x.disabled = true; });
+    $(ans).innerHTML = (b.dataset.v === correct ? "<strong>Right.</strong> " : "<strong>Not quite.</strong> ") + text;
+    $(ans).classList.remove("hidden"); answered();
+  }));
+}
+choose("c1", "a1", "pneu", "Pneumonia and flu led the list, with tuberculosis close behind. Heart disease was fourth and cancer was eighth.");
+choose("c3", "a3", "age", "Cancer is mostly a disease of older age, and in 1900 many people died of infections long before they reached it. Once you account for the older population, cancer death rates have been falling since the early 1990s.");
+$("s2").addEventListener("input", e => $("v2").textContent = e.target.value);
+$("b2").addEventListener("click", () => {
+  const g = +$("s2").value; $("s2").disabled = true; $("b2").disabled = true;
+  $("a2").innerHTML = `<strong>${Y1900.life} years.</strong> You guessed ${g}. In ${2024} it was ${Y2024.life.toFixed(1)} years. The 1900 number is an average pulled down by the many babies and children who died; it doesn’t mean most adults died in their 40s.`;
+  $("a2").classList.remove("hidden"); answered();
+});
+
+function col(id, year, d) {
+  $(id).innerHTML = `<h3>${year} <span>· ${d.all.toLocaleString()} deaths per 100,000 from all causes</span></h3>` +
+    d.list.map(([n, r, t], i) => `<div class="item"><div class="top"><span>${i + 1}. ${n}</span><b>${r.toFixed(1)}</b></div>` +
+      `<div class="track"><div class="fill" style="width:${r / MAX * 100}%;background:${TAG[t][1]}"></div></div><div class="tag">${TAG[t][0]}</div></div>`).join("");
+}
+col("col1900", 1900, Y1900); col("col2024", 2024, Y2024);
+const infShare = Math.round(Y1900.list.filter(x => x[2] === "inf").reduce((s, x) => s + x[1], 0) / Y1900.all * 100);
+const stat = (n, c) => `<div class="stat"><div class="num">${n}</div><div class="cap">${c}</div></div>`;
+$("stats").innerHTML =
+  stat(`${Y1900.life} → ${Y2024.life.toFixed(1)}`, "years of life expectancy at birth, 1900 to 2024") +
+  stat(`${infShare}% → 0`, "share of all deaths from infections in the top ten") +
+  stat(`${Math.round((1 - Y2024.all / Y1900.all) * 100)}% lower`, "overall death rate in 2024 than in 1900");
+$("skip").addEventListener("click", showAll);
+if (location.hash === "#lists") showAll();
+</script>
+</body>
+</html>
