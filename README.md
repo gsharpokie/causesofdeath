@@ -1,6 +1,6 @@
 # What Killed Us, Then and Now
 
-An interactive comparison of the ten leading causes of death in the United States in 1900 and 2024. Students make three guesses, then see both lists as bars on one scale, with each cause labeled as an infection, chronic disease, injury, or other. By Gwen Sharp, as a companion to Chapter 15 (Health and Illness) of *A Sociology Experiment*.
+An interactive comparison of the ten leading causes of death in the United States in 1900 and 2024. Students make three guesses, then see both lists as bars on one scale, with each cause labeled as an infection, chronic disease, injury, or other. By Gwen Sharp.
 
 **Live site:** https://gsharpokie.github.io/causesofdeath/
 
