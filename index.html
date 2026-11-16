@@ -120,6 +120,9 @@ summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 .card { min-width: 0; }
 .hidden { display: none !important; }
 @media (max-width: 620px) { .cols { grid-template-columns: 1fr; } .card { padding: 1.1rem; } }
+
+/* Main landmark for screen readers; keeps the same spacing as before. */
+.wrap-main { display: grid; gap: inherit; min-width: 0; }
 </style>
 </head>
 <body>
@@ -129,6 +132,7 @@ summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
     <h1>What Killed Us, Then and Now</h1>
     <p class="lede">What people die of says a lot about how a society lives: its water, housing, work, medicine, and how long people last. Make three guesses about the United States in 1900, then compare the leading causes of death then and now.</p>
   </header>
+  <main class="wrap-main">
 
   <section class="card" aria-live="polite">
     <div class="step">Guess 1 of 3</div>
@@ -219,6 +223,7 @@ summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
     <p>Spot an error? <a href="https://github.com/gsharpokie/causesofdeath/issues/new">Suggest a correction</a> (needs a free GitHub account).</p>
   </section>
 
+  </main>
   <footer>Created by Gwen Sharp (<a href="https://x.com/gsharpokie">@gsharpokie</a>). Licensed under <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a>.</footer>
 </div>
 
